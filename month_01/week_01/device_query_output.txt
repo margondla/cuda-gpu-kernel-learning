@@ -1,0 +1,25 @@
+CUDA-capable devices found: 1
+
+=== Device 0: NVIDIA RTX A5000 ===
+Compute capability        : 8.6
+Multiprocessor (SM) count : 64
+Warp size                 : 32 threads
+Max threads per block     : 1024
+Max threads per SM        : 1536
+Max blocks per SM         : 16
+Max grid dim  (x, y, z)   : (2147483647, 65535, 65535)
+Max block dim (x, y, z)   : (1024, 1024, 64)
+Registers per block       : 65536 (32-bit)
+Registers per SM          : 65536 (32-bit)
+Shared memory per block   : 49152 bytes (48 KB)
+Shared memory per SM      : 102400 bytes (100 KB)
+Total global memory       : 23.57 GB
+L2 cache size             : 6291456 bytes (6144 KB)
+Memory bus width          : 384 bits
+Memory clock rate         : 8001000 kHz (8.001 GHz effective)
+Peak memory bandwidth     : 768.1 GB/s
+Core clock rate           : 1695000 kHz (1.695 GHz)
+ECC enabled               : no
+Concurrent kernels        : yes
+Async engine count        : 2
+

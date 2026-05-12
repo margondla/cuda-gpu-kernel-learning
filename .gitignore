@@ -1,0 +1,28 @@
+# Build outputs — convention: each week dir has a build/ subdir for binaries
+build/
+**/build/
+
+# CUDA intermediate artifacts (keep .ncu-rep / .nsys-rep — those are deliverables)
+*.o
+*.obj
+*.so
+*.a
+*.dylib
+*.exe
+*.ptx
+*.cubin
+*.fatbin
+
+# Python (if used later)
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
