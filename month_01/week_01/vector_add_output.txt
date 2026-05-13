@@ -1,0 +1,9 @@
+vector_add: N = 16777216 (64.0 MB per array, 192.0 MB total H<->D)
+launch config: grid = 65536 blocks, block = 256 threads (total 16777216 threads)
+
+--- results ---
+kernel time         : 0.341 ms
+effective bandwidth : 589.9 GB/s
+peak bandwidth (A5000): 768.1 GB/s
+fraction of peak    : 76.8 %
+correctness         : PASS (0 errors)
