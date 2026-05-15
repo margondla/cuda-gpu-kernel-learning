@@ -76,11 +76,13 @@ STG.E [R6.64], R9                                    ; store C[i]
 EXIT
 ```
 
-Three observations worth recording:
-
+Four observations worth recording:
 1. **`LDG.E.CONSTANT` instead of plain `LDG.E`.** The `const float* __restrict__` qualifiers on A and B unlocked the read-only L1 cache path. A concrete machine-code payoff for `__restrict__` -- not a theoretical optimization, a visible one.
-2. **`.reuse` operand hints on the second `IMAD.WIDE`.** The compiler told the operand reuse cache to hold R6 and R7 across consecutive address computations, saving register-file ports.
+2. **`.reuse` operand hints on the second `IMAD.WIDE`.** The compiler told the operand reuse cache to hold R6 and R7 across consecutive address computations, saving register-file ports. Ampere exposes a small per-warp operand reuse cache; the compiler is opting in.
 3. **The C-address `IMAD.WIDE` is scheduled BETWEEN the two loads and the FADD.** Static instruction reordering by the compiler to hide load latency: the C-address compute has no data dependency on A or B's load results, so it can run while those loads are outstanding.
+4. **A `ULDC.64 UR4, c[0x0][0x118]` (uniform datapath load) precedes the address-arithmetic block, not shown in the body listing above.** The kernel-argument base pointer is warp-invariant -- identical across all 32 threads in the warp -- so the compiler loaded it once into a uniform register via the uniform datapath rather than 32 times via the vector path. Ampere's uniform datapath is a separate silicon resource (separate issue port, separate register file) that runs alongside the vector ALUs without competing for them. Seeing `ULDC` here means the compiler correctly identified the warp-invariant computation. **Forward-looking for Week 1:** the tile base address in transpose kernels is also warp-invariant. Expect `ULDC` there too; if it's missing in the naive transpose, that's a code-gen smell worth investigating.
+
+The 14-instruction body listing above counts vector-datapath ops only. The `MOV R1, c[0x0][0x28]` stack-frame prologue and the `ULDC.64` uniform load are excluded as architecturally separate (prologue runs once, uniform ops run on a different datapath).
 
 The boundary check `if (i < N)` compiled to **predication, not branching**: `ISETP` sets a 1-bit predicate, `@P0 EXIT` is masked execution. For the last block where some threads have `i >= N`, the hardware masks those lanes rather than diverging the warp.
 
