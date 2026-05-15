@@ -1,0 +1,12 @@
+memcpy_baseline: N=4096, buffer=67.11 MB, traffic/copy=134.22 MB (2N)
+
+Results (20 timed, 5 warmup):
+  Min: 0.190 ms  ->  706.8 GB/s  (92.0% of peak)
+  Avg: 0.190 ms  ->  704.7 GB/s  (91.8% of peak)
+  A5000 spec peak: 768 GB/s
+memcpy_baseline: N=8192, buffer=268.44 MB, traffic/copy=536.87 MB (2N)
+
+Results (20 timed, 5 warmup):
+  Min: 0.747 ms  ->  718.3 GB/s  (93.5% of peak)
+  Avg: 0.749 ms  ->  716.7 GB/s  (93.3% of peak)
+  A5000 spec peak: 768 GB/s
