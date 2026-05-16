@@ -1,0 +1,5 @@
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z14transpose_smemPKfPfi' for 'sm_86'
+ptxas info    : Function properties for _Z14transpose_smemPKfPfi
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, 4096 bytes smem, 372 bytes cmem[0]
