@@ -145,3 +145,44 @@ touching the memory hierarchy directly.
 - ncu hardware counters: ERR_NVGPUCTRPERM on both Secure Cloud and Community Cloud.
   Month 1 profiler deliverable drops to SASS + bandwidth + prediction-commitment.
   Dated gate 2026-05-24 passed — fallback is now permanent for Month 1.
+
+---
+
+## reduce1 — Harris reduce1 (interleaved, non-divergent) — Day 7 addendum
+
+**Purpose**: control experiment to isolate bank conflict cost vs reduce2.
+reduce1 fixes divergence (vs reduce0) but introduces bank conflicts via
+`idx = 2*s*tid` strided smem access. reduce2 fixes both. Comparing the
+three isolates each variable's contribution.
+
+**Result**: 0.3106 ms / 216.05 GB/s / 30.6% memcpy
+
+**Decomposition of reduce0 -> reduce2 speedup (1.45x)**:
+- reduce0 -> reduce1: 0.4302 -> 0.3106 ms = 0.1196 ms saved (~91% of total gain)
+  Cause: divergence elimination
+- reduce1 -> reduce2: 0.3106 -> 0.2974 ms = 0.0132 ms saved (~9% of total gain)
+  Cause: bank conflict elimination
+
+**Falsification result**: the confound flagged in the original writeup is resolved.
+Divergence elimination accounts for ~91% of the reduce0->reduce2 speedup.
+Bank conflicts are a second-order effect in this kernel.
+
+**Why bank conflicts are cheap here**: global memory bandwidth is the dominant
+bottleneck. By the time s is small enough for interleaved addressing to create
+severe conflicts, so little work remains that the absolute cost is negligible.
+Bank conflicts matter when smem throughput is the bottleneck. It is not here.
+
+**Updated cost model for sm_86 reductions**:
+Warp divergence is ~9x more expensive than bank conflicts for this access pattern.
+Prior assumption (bank conflicts clawback most of divergence gain) was wrong.
+Calibrate future predictions accordingly.
+
+**Prediction miss**: predicted 0.38 ms / 24.9%. Actual 0.3106 ms / 30.6%.
+Error: overweighted bank conflict cost, underweighted divergence elimination value.
+Direction of error: conservative on reduce1 performance (predicted worse than actual).
+
+## Updated carry-forward
+
+- reduce1 completed Day 7. Bank conflict falsification gate closed.
+- ncu hardware counters: ERR_NVGPUCTRPERM permanent for Month 1.
+- Next: reduce6 (first add during load) — attacks global load phase directly.
