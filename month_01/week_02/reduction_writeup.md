@@ -186,3 +186,37 @@ Direction of error: conservative on reduce1 performance (predicted worse than ac
 - reduce1 completed Day 7. Bank conflict falsification gate closed.
 - ncu hardware counters: ERR_NVGPUCTRPERM permanent for Month 1.
 - Next: reduce6 (first add during load) — attacks global load phase directly.
+
+## reduce6 — First Add During Load (Harris reduce6)
+
+### Result
+- Time: 0.0973 ms | Throughput: 689.40 GB/s | 97.5% memcpy baseline
+- vs reduce5: 0.1710 ms -> 0.0973 ms, 392.50 -> 689.40 GB/s, 1.76x speedup
+
+### Structural change
+Each thread loads 2 elements (g_in[i] + g_in[i + half]) before writing to smem.
+Block count halved (65536 -> 32768). Work per thread doubled.
+
+### SASS confirmation
+0x00a0: LDG.E.CONSTANT R5, [R4.64]   // load element i
+0x00b0: LDG.E.CONSTANT R6, [R6.64]   // load element i + N/2, back-to-back
+0x00f0: FADD R2, R6, R5              // first add after both loads issued
+0x0110: BAR.SYNC.DEFER_BLOCKING      // soft barrier, not hard stall
+
+### Analytical conclusions
+1. Load phase was the dominant bottleneck in reduce5. Two back-to-back LDGs
+   with no intervening barrier allow the second load's latency to overlap with
+   waiting on the first. This nearly saturated the memory bus (97.5% memcpy).
+2. BAR.DEFER_BLOCKING issues without stalling -- warp only blocks if a
+   dependent instruction is reached before the barrier completes. Hard BAR.SYNC
+   would stall all threads immediately, destroying the ILP recovered by the
+   two-load pattern.
+3. The 42 percentage point jump (55.5% -> 97.5%) from one structural change
+   confirms the bottleneck in reduce5 was not the reduction tree, not barriers,
+   not unrolling -- it was the serial one-element-per-thread load pattern
+   leaving the memory bus chronically underutilized.
+
+### Prediction vs actual
+Predicted: 0.105 ms / 640 GB/s / 90% | Actual: 0.0973 ms / 689 GB/s / 97.5%
+Miss direction: underestimated ILP gain. Mental model assumed partial latency
+recovery; actual result shows near-complete bus saturation from two loads alone.
